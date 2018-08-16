@@ -78,13 +78,14 @@ Blue Ball = 5 points
 Pink Ball = 6 points
 Black Ball = 7 points
 """
-BALL_RED = 1
-BALL_YELLOW = 2
-BALL_GREEN = 3
-BALL_BROWN = 4
-BALL_BLUE = 5
-BALL_PINK = 6
-BALL_BLACK = 7
+BALL_RED = 0
+BALL_YELLOW = 1
+BALL_GREEN = 2
+BALL_BROWN = 3
+BALL_BLUE = 4
+BALL_PINK = 5 # * = light red ..
+BALL_BLACK = 6 # * need specific traitment
+BALL_WHITE = 7 #* need also specific traitement
 HSV_LOWER = 0
 HSV_UPPER = 1
 
@@ -97,14 +98,12 @@ HSV_UPPER = 1
 """
 TAPIS_HSV_LOWER_UPPER = [[45,0,0],[75,255,255]]
 
-BALL_HSV_LOWER_UPPER = [[[6,4,17],[75,66,255]],
-                    [[27,213,249],[24,244,255],],
-                    [[20,0,0],[40,255,255]],
-                    [[50,0,0],[70,255,255]],
-                    [[2,0,0],[22,255,255]],
-                    [[110,0,0],[130,255,255]],
-                    [[157,0,0],[177,255,255]],
-                    [[0,0,0],[2,255,255]]]
+BALL_HSV_LOWER_UPPER = [[[1,194,0],[13,255,255]], #RED
+                    [[29,0,0],[32,255,255],] , #YELLOW
+                    [[64,9,16],[80,255,255]],  #GREEN
+                    [[16,0,0],[30,255,255]],   #BROWN (TRes proche du jaune)
+                    [[86,0,0],[110,255,203]],    #BLUE
+                [[1,0,0],[13,206,255]]  # PINK (Attention: Tres proche du rouge)
                
 
 hsvImage = None
@@ -187,10 +186,54 @@ def extract_tapis(_image):
         hsvImage = four_point_transform(imgMul, approx)
         cv2.imshow("imageRes", hsvImage)
         cv2.setMouseCallback("imageRes", onMouse )
-    extract_ball(hsvImage, 1)
+    #extract_ball(hsvImage, 2)
 
+    #grayImg = cv2.cvtColor(hsvImage, cv2.COLOR_BGR2GRAY)
+    #cv2.imshow("grayImg ", hsvImage[:, :, 0])
+    retval, imgThresh = cv2.threshold( hsvImage[:, :, 0], 50, 255, cv2.THRESH_TOZERO_INV)
+    cv2.imshow("edged ", imgThresh)
 
+    #edged = cv2.Canny(hsvImage[:, :, 0], 100, 10, apertureSize=3)
+    #cv2.imshow("grayImg ", hsvImage[:, :, 0])
+    #cv2.imshow("edged ", edged)
+    
     """
+    # Setup SimpleBlobDetector parameters.
+    params = cv2.SimpleBlobDetector_Params()
+
+    # Change thresholds
+    params.minThreshold = 10
+    params.maxThreshold = 100
+
+
+    # Filter by Area.
+    params.filterByArea = True
+    params.minArea = 50
+
+    # Filter by Circularity
+    params.filterByCircularity = True
+    params.minCircularity = 0.1
+
+    # Filter by Convexity
+    params.filterByConvexity = True
+    params.minConvexity = 0.87
+
+    # Filter by Inertia
+    params.filterByInertia = True
+    params.minInertiaRatio = 0.01
+
+    detector = cv2.SimpleBlobDetector_create(params)
+    keypoints = detector.detect(grayImg)
+    im_with_keypoints = cv2.drawKeypoints(hsvImage, keypoints, np.array([]), (255,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+    cv2.imshow("imageRes blob", im_with_keypoints)
+    """
+    """
+    circles = cv2.HoughCircles(hsvImage[:, :, 0], cv2.HOUGH_GRADIENT, 1,5, param1=100, param2=10, minRadius=4, maxRadius=10  )
+    circles = np.uint16(np.around(circles))
+    for c in circles[0,:]: 
+        cv2.circle(hsvImage, (c[0], c[1]), c[2], (255,0,255), 1)
+    cv2.imshow("imageRes Hough", hsvImage)
+   
     lines = cv2.HoughLinesP(edged, 1, np.pi/180, 100, minLineLength=50, maxLineGap=10)
     for l in lines:
        x1,y1,x2,y2  = l[0]
@@ -230,7 +273,7 @@ def preprocess_table(_image):
 
     imgMul = cv2.multiply(_image, np.array([1.75])) # adjust exposure (depending of the source image) TODO: trouver un mmoyen de trouver la bonne valeur (1.75 ... )
 
-    imgGray = cv2.cvtColor(imgMul, cv2.COLOR_BGR2GRAY)
+    imgGray = cv2.cvtColor(_image, cv2.COLOR_BGR2GRAY)
     
     imgBlur = cv2.GaussianBlur(imgGray, (5,5), 0)
     cv2.imshow("imgBlur", imgBlur)
@@ -242,13 +285,19 @@ def preprocess_table(_image):
 
     #imgThresh = cv2.adaptiveThreshold(imgBlur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 19, 2)
     
-    retval, imgThresh = cv2.threshold(imgBlur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
-    cv2.imshow("imgThresh", imgThresh)
+    #retval, imgThresh = cv2.threshold(imgBlur, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)
+    #cv2.imshow("imgThresh", imgThresh)
 
-    edged = cv2.Canny(imgThresh, 100, 200, apertureSize=3)
+    edged = cv2.Canny(imgBlur, 100, 10, apertureSize=3)
     #edged = cv2.bitwise_not(edged)
     cv2.imshow("edged", edged) 
-
+    
+    circles = cv2.HoughCircles(imgBlur, cv2.HOUGH_GRADIENT, 1,2, param1=100, param2=10, minRadius=5, maxRadius=12  )
+    circles = np.uint16(np.around(circles))
+    for c in circles[0,:]: 
+        cv2.circle(_image, (c[0], c[1]), c[2], (0,0,255))
+    cv2.imshow("hough circles", _image)
+    
     """
     dummyImage, contours, hierarchy = cv2.findContours(edged.copy(), cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     contours = sorted(contours, key = cv2.contourArea, reverse = True)[:20]
@@ -266,8 +315,8 @@ def preprocess_table(_image):
         #if len(approx) == 4:
         #    screenCnt = approx
         #    break
-    """
-    #cv2.drawContours(_image, [screenCnt], -1, (0, 255, 0), 3)
+    
+    cv2.drawContours(_image, [screenCnt], -1, (0, 255, 0), 3)
     lines = cv2.HoughLinesP(edged, 1, np.pi/180, 100, minLineLength=50, maxLineGap=10)
     for l in lines:
        x1,y1,x2,y2  = l[0]
@@ -275,7 +324,7 @@ def preprocess_table(_image):
 
 
     cv2.imshow("_image with countour", _image) 
-    """
+    
     # find lines
     lines = cv2.HoughLines(edged, 1, np.pi/180.0, 100, np.array([]), 0, 0)
     a,b,c = lines.shape
@@ -297,7 +346,7 @@ def preprocess_table(_image):
     """
 
 
-    return imgThresh
+    #return imgThresh
 
 def find_table(_imgThresh, _imgSrc):
     """Uses contour to isolate the table

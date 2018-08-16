@@ -8,6 +8,7 @@
 # https://gist.github.com/cancan101/e19982815e4d3b2b3b95
 # http://www.marcus-hebel.de/foto/ShiftN_Fonctions.html
 # http://www.marcus-hebel.de/
+# https://pysource.com/2018/01/31/object-detection-using-hsv-color-space-opencv-3-4-with-python-3-tutorial-9/
 
 import cv2
 import imutils
@@ -20,10 +21,8 @@ import table
 imgInput = cv2.imread(".\captures\capture_005.jpg")
 #imgInput = cv2.imread(".\captures\lines.png")
 cv2.imshow("Image Input", imgInput)
-
-#imgTableThresh = table.preprocess_table(imgInput) 
-#table.find_table(imgTableThresh, imgInput)
 table.extract_tapis(imgInput)
+
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
