@@ -9,6 +9,12 @@
 # http://www.marcus-hebel.de/foto/ShiftN_Fonctions.html
 # http://www.marcus-hebel.de/
 # https://pysource.com/2018/01/31/object-detection-using-hsv-color-space-opencv-3-4-with-python-3-tutorial-9/
+# https://stackoverflow.com/questions/26932891/detect-touching-overlapping-circles-ellipses-with-opencv-and-python
+# https://www.pyimagesearch.com/2015/11/02/watershed-opencv/#comment-421187
+# https://docs.opencv.org/3.4/d2/dbd/tutorial_distance_transform.html
+# https://github.com/muratkrty/specularity-removal
+# https://www.pyimagesearch.com/2016/10/31/detecting-multiple-bright-spots-in-an-image-with-python-and-opencv/
+# https://www.pyimagesearch.com/2014/09/29/finding-brightest-spot-image-using-python-opencv/
 
 import cv2
 import imutils
